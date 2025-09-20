@@ -1,8 +1,8 @@
-const Tarefa = require('../models/Tarefa');
+import Tarefa from '../models/Tarefa.js';
 
 let tarefas = [];
 
-exports.criarTarefa = (req, res) => {
+export const criarTarefa = (req, res) => {
     try {
         const { descricao, concluida } = req.body;
         const novaTarefa = new Tarefa(descricao, concluida);
@@ -13,11 +13,11 @@ exports.criarTarefa = (req, res) => {
     }
 };
 
-exports.listarTarefas = (req, res) => {
+export const listarTarefas = (req, res) => {
     res.status(200).json(tarefas);
 };
 
-exports.buscarTarefaPorId = (req, res) => {
+export const buscarTarefaPorId = (req, res) => {
     const { objectId } = req.params;
     const tarefa = tarefas.find(t => t.objectId === objectId);
     if (!tarefa) {
@@ -26,7 +26,7 @@ exports.buscarTarefaPorId = (req, res) => {
     res.status(200).json(tarefa);
 };
 
-exports.atualizarTarefa = (req, res) => {
+export const atualizarTarefa = (req, res) => {
     const { objectId } = req.params;
     const { descricao, concluida } = req.body;
     const tarefa = tarefas.find(t => t.objectId === objectId);
@@ -34,7 +34,7 @@ exports.atualizarTarefa = (req, res) => {
     if (!tarefa) {
         return res.status(404).json({ error: 'Tarefa não encontrada.' });
     }
-
+    
     if (descricao !== undefined) {
         tarefa.descricao = descricao;
     }
@@ -45,7 +45,7 @@ exports.atualizarTarefa = (req, res) => {
     res.status(200).json(tarefa);
 };
 
-exports.excluirTarefa = (req, res) => {
+export const excluirTarefa = (req, res) => {
     const { objectId } = req.params;
     const indice = tarefas.findIndex(t => t.objectId === objectId);
 

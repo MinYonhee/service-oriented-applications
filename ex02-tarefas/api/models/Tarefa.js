@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+import { v4 as uuidv4 } from 'uuid';
 
 class Tarefa {
     constructor(descricao, concluida = false) {
@@ -11,4 +11,4 @@ class Tarefa {
     }
 }
 
-module.exports = Tarefa;
+export default Tarefa;
