@@ -1,12 +1,14 @@
+
 import { Sequelize, DataTypes } from "sequelize";
+import * as pg from 'pg'; 
 import getUserModel from "./user.js"; 
 import getMessageModel from "./message.js";
 
-import pg from 'pg'; 
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
   protocol: "postgres",
+  logging: false, 
   dialectOptions: {
     ssl: {
       require: true,
@@ -20,6 +22,7 @@ const db = {};
 
 db.User = getUserModel(sequelize, DataTypes);
 db.Message = getMessageModel(sequelize, DataTypes);
+
 
 db.User.hasMany(db.Message, {
   onDelete: 'CASCADE', 
@@ -41,4 +44,4 @@ Object.keys(db).forEach((key) => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-export default db; 
+export default db;
