@@ -3,8 +3,8 @@ import cors from "cors";
 import express from "express";
 
 import db from "./models/index.js"; 
-import userRouter from "./routes/user.routes.js";
-import messageRouter from "./routes/message.routes.js";
+import userRouter from "./api/routes/user.routes.js";
+import messageRouter from "./api/routes/message.routes.js";
 
 const app = express();
 app.set("trust proxy", true);
