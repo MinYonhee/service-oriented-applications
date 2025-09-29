@@ -1,47 +1,31 @@
+import Sequelize from "sequelize";
 
-import { Sequelize, DataTypes } from "sequelize";
-import * as pg from 'pg'; 
-import getUserModel from "./user.js"; 
-import getMessageModel from "./message.js";
+import getUserModel from "./user";
+import getMessageModel from "./message";
 
-
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+const sequelize = new Sequelize(process.env.POSTGRES_URL, {
   dialect: "postgres",
   protocol: "postgres",
-  logging: false, 
   dialectOptions: {
     ssl: {
       require: true,
       rejectUnauthorized: false,
     },
   },
-  dialectModule: pg, 
+  dialectModule: require("pg"),
 });
 
-const db = {};
+const models = {
+  User: getUserModel(sequelize, Sequelize),
+  Message: getMessageModel(sequelize, Sequelize),
+};
 
-db.User = getUserModel(sequelize, DataTypes);
-db.Message = getMessageModel(sequelize, DataTypes);
-
-
-db.User.hasMany(db.Message, {
-  onDelete: 'CASCADE', 
-  foreignKey: 'userId', 
-  as: 'messages'
-});
-
-db.Message.belongsTo(db.User, {
-  foreignKey: 'userId',
-  as: 'user'
-});
-
-Object.keys(db).forEach((key) => {
-  if (db[key].associate) {
-    db[key].associate(db); 
+Object.keys(models).forEach((key) => {
+  if ("associate" in models[key]) {
+    models[key].associate(models);
   }
 });
 
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
+export { sequelize };
 
-export default db;
+export default models;

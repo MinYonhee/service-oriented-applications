@@ -1,83 +1,82 @@
-import express from 'express';
-import db from '../models/index.js'; 
+import { Router } from "express";
+import { Sequelize } from "sequelize";
 
-const router = express.Router();
-const User = db.User; 
-const Message = db.Message; 
-router.post("/", async (req, res) => {
-  try {
-    const user = await User.create(req.body); 
-    return res.status(201).json({ id: user.id, name: user.name, email: user.email });
-  } catch (error) {
-    console.error("Erro ao criar usuário:", error.message);
-    return res.status(500).json({ 
-      message: "Erro interno ao criar usuário. Verifique a unicidade do email.", 
-      error: error.message 
-    });
-  }
-});
+const router = Router();
 
 router.get("/", async (req, res) => {
   try {
-    const users = await User.findAll({
-      attributes: { exclude: ['password'] } 
+    const users = await req.context.models.User.findAll({
+      attributes: ["id", "username", "email"],
+      include: [
+        {
+          model: req.context.models.Message,
+          attributes: ["id", "text", "createdAt"],
+        },
+      ],
     });
     return res.status(200).json(users);
   } catch (error) {
-    console.error("Erro ao buscar usuários:", error.message);
-    return res.status(500).json({ message: "Erro interno do servidor ao buscar usuários." });
+    return res.status(500).json({ error: "Erro ao buscar usuários" });
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:userId", async (req, res) => {
   try {
-    const id = req.params.id;
-    const user = await User.findByPk(id, {
-      include: [{ model: Message, as: 'messages' }],
-      attributes: { exclude: ['password'] }
+    const user = await req.context.models.User.findByPk(req.params.userId, {
+      attributes: ["id", "username", "email"],
+      include: [
+        {
+          model: req.context.models.Message,
+          attributes: ["id", "text", "createdAt"],
+        },
+      ],
     });
-
-    if (user) {
-      return res.status(200).json(user);
-    } else {
-      return res.status(404).json({ message: `Usuário com id=${id} não encontrado.` });
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
     }
+    return res.status(200).json(user);
   } catch (error) {
-    console.error("Erro ao buscar usuário:", error.message);
-    return res.status(500).json({ message: "Erro interno do servidor ao buscar usuário." });
+    return res.status(500).json({ error: "Erro ao buscar usuário" });
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
-    const id = req.params.id;
-    const [updated] = await User.update(req.body, { where: { id: id } });
-
-    if (updated) {
-      const updatedUser = await User.findByPk(id, { attributes: { exclude: ['password'] } });
-      return res.status(200).json(updatedUser);
-    } else {
-      return res.status(404).json({ message: `Usuário com id=${id} não encontrado.` });
+    const { username, email } = req.body;
+    if (!username || !email) {
+      return res.status(400).json({ error: "Username e email são obrigatórios" });
     }
+    const user = await req.context.models.User.create({ username, email });
+    return res.status(201).json(user);
   } catch (error) {
-    console.error("Erro ao atualizar usuário:", error.message);
-    return res.status(500).json({ message: "Erro interno do servidor ao atualizar usuário." });
+    return res.status(500).json({ error: "Erro ao criar usuário" });
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.put("/:userId", async (req, res) => {
   try {
-    const id = req.params.id;
-    const deleted = await User.destroy({ where: { id: id } });
-
-    if (deleted) {
-      return res.status(204).send();
-    } else {
-      return res.status(404).json({ message: `Usuário com id=${id} não encontrado.` });
+    const { username, email } = req.body;
+    const user = await req.context.models.User.findByPk(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
     }
+    await user.update({ username, email });
+    return res.status(200).json(user);
   } catch (error) {
-    console.error("Erro ao deletar usuário:", error.message);
-    return res.status(500).json({ message: "Erro interno do servidor ao deletar usuário." });
+    return res.status(500).json({ error: "Erro ao atualizar usuário" });
+  }
+});
+
+router.delete("/:userId", async (req, res) => {
+  try {
+    const user = await req.context.models.User.findByPk(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+    await user.destroy();
+    return res.status(204).send();
+  } catch (error) {
+    return res.status(500).json({ error: "Erro ao deletar usuário" });
   }
 });
 

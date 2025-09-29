@@ -1,30 +1,25 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes } from "sequelize";
 
-const getUserModel = (sequelize) => {
+const getUserModel = (sequelize, { DataTypes }) => {
   const User = sequelize.define("user", {
-    name: {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    username: {
       type: DataTypes.STRING,
       allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
     },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true, 
-      validate: {
-        isEmail: true,
-      },
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        len: [6, 255], 
-      },
     },
   });
+
+  User.associate = (models) => {
+    User.hasMany(models.Message, { foreignKey: "userId" });
+  };
 
   return User;
 };
